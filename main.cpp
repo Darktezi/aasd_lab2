@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <random>
+#include <windows.h>
 
 template<typename T>
 struct Node {
@@ -104,6 +105,36 @@ public:
         return *this;
     }
 
+    // Добавление элемента в конец списка
+    void push_tail(const T& value) {
+        Node<T>* newNode = new Node<T>(value);
+        if (!_head) {
+            _head = newNode;
+            _head->next = _head;
+        }
+        else {
+            Node<T>* temp = _head;
+            while (temp->next != _head) {
+                temp = temp->next;
+            }
+            temp->next = newNode;
+            newNode->next = _head;
+        }
+    }
+
+    // Перегруженный метод добавления другого списка в конец текущего списка
+    void push_tail(const LinkedList<T>& otherList) {
+        if (!otherList._head) {
+            return;
+        }
+
+        Node<T>* otherTemp = otherList._head;
+        do {
+            push_tail(otherTemp->data);
+            otherTemp = otherTemp->next;
+        } while (otherTemp != otherList._head);
+    }
+
     // Метод для вывода списка
     void display() const {
         if (!_head) {
@@ -121,17 +152,33 @@ public:
 };
 
 int main() {
+    SetConsoleOutputCP(1251);
+
     // Создание списка с 5 случайными элементами для целых чисел
-    LinkedList<int> intList(5);
-    std::cout << "list 1: ";
+    LinkedList<int> intList;
+    intList.push_tail(10);
+    intList.push_tail(20);
+    intList.push_tail(30);
+
+    std::cout << "Список целых чисел: ";
     intList.display();
 
     // Создание списка с 5 случайными элементами для чисел с плавающей запятой
-    LinkedList<double> doubleList(5);
-    std::cout << "list 2: ";
+    LinkedList<double> doubleList;
+    doubleList.push_tail(1.5);
+    doubleList.push_tail(2.5);
+    doubleList.push_tail(3.5);
+
+    std::cout << "Список чисел с плавающей точкой: ";
     doubleList.display();
 
-    
+    LinkedList<int> additionalIntList;
+    additionalIntList.push_tail(40);
+    additionalIntList.push_tail(50);
 
+    intList.push_tail(additionalIntList);
+
+    std::cout << "Список целых чисел с присоединенным списком: ";
+    intList.display();
     return 0;
 }
