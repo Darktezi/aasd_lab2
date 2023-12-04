@@ -177,6 +177,92 @@ public:
         } while (current != nullptr);
     }
 
+    // Удаление элемента из начала списка
+    void pop_head() {
+        if (!_head) {
+            std::cout << "List is empty. Cannot pop from empty list." << std::endl;
+            return;
+        }
+
+        Node<T>* temp = _head;
+        Node<T>* last = _head;
+
+        while (last->next != _head) {
+            last = last->next;
+        }
+
+        if (temp->next == _head) {
+            delete temp;
+            _head = nullptr;
+        }
+        else {
+            _head = temp->next;
+            last->next = _head;
+            delete temp;
+        }
+    }
+
+    // Удаление элемента из конца списка
+    void pop_tail() {
+        if (!_head) {
+            std::cout << "List is empty. Cannot pop from empty list." << std::endl;
+            return;
+        }
+
+        Node<T>* temp = _head;
+        Node<T>* last = nullptr;
+
+        while (temp->next != _head) {
+            last = temp;
+            temp = temp->next;
+        }
+
+        if (last == nullptr) {
+            delete temp;
+            _head = nullptr;
+        }
+        else {
+            last->next = _head;
+            delete temp;
+        }
+    }
+
+    // Удаление всех элементов Node с информационным полем, равным переданному
+    void delete_node(const T& value) {
+        if (!_head) {
+            std::cout << "List is empty. No elements to delete." << std::endl;
+            return;
+        }
+
+        Node<T>* temp = _head;
+        Node<T>* prev = nullptr;
+        Node<T>* toDelete = nullptr;
+        bool found = false;
+
+        do {
+            if (temp->data == value) {
+                toDelete = temp;
+                found = true;
+                break;
+            }
+            prev = temp;
+            temp = temp->next;
+        } while (temp != _head);
+
+        if (!found) {
+            std::cout << "Element with value " << value << " not found in the list." << std::endl;
+            return;
+        }
+
+        if (toDelete == _head) {
+            pop_head();
+        }
+        else {
+            prev->next = toDelete->next;
+            delete toDelete;
+        }
+    }
+
     // Метод для вывода списка
     void display() const {
         if (!_head) {
@@ -194,26 +280,36 @@ public:
 };
 
 int main() {
-    SetConsoleOutputCP(1251);
-
+    // Создание списка типа int и добавление элементов
     LinkedList<int> intList;
     intList.push_tail(10);
     intList.push_tail(20);
     intList.push_tail(30);
-
+    intList.push_tail(40);
     intList.display();
 
-    LinkedList<int> additionalIntList;
-    additionalIntList.push_head(40);
-    additionalIntList.push_head(50);
+    // Удаление элемента из начала списка
+    intList.pop_head();
+    intList.display();
 
-    additionalIntList.display();
+    // Удаление элемента из конца списка
+    intList.pop_tail();
+    intList.display();
 
-    // Добавление списка intList в начало additionalIntList
-    additionalIntList.push_head(intList);
+    // Создание списка типа double и добавление элементов
+    LinkedList<double> doubleList;
+    doubleList.push_tail(3.14);
+    doubleList.push_tail(6.28);
+    doubleList.push_tail(9.42);
+    doubleList.display();
 
-    std::cout << "Список целых чисел: ";
-    additionalIntList.display();
+    // Удаление элемента из начала списка
+    doubleList.pop_head();
+    doubleList.display();
+
+    // Удаление всех элементов Node с информационным полем, равным 6.28
+    doubleList.delete_node(6.28);
+    doubleList.display();
 
     return 0;
 }
