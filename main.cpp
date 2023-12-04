@@ -7,9 +7,10 @@ template<typename T>
 struct Node {
     T data;
     Node* next;
+    int exponent;
 
     Node() : next(nullptr) {}
-    Node(const T& value) : data(value), next(nullptr) {}
+    Node(const T& value, int exp) : data(value), exponent(exp), next(nullptr) {}
 };
 
 template<typename T>
@@ -25,11 +26,11 @@ public:
     LinkedList(const LinkedList<T>& other) : _head(nullptr) {
         Node<T>* otherPtr = other._head;
         if (otherPtr) {
-            _head = new Node<T>(otherPtr->data);
+            _head = new Node<T>(otherPtr->data, otherPtr->exponent);
             Node<T>* temp = _head;
             otherPtr = otherPtr->next;
             while (otherPtr != other._head) {
-                temp->next = new Node<T>(otherPtr->data);
+                temp->next = new Node<T>(otherPtr->data, otherPtr->exponent);
                 otherPtr = otherPtr->next;
                 temp = temp->next;
             }
@@ -45,40 +46,19 @@ public:
             std::uniform_int_distribution<T> dis(-100, 100);
             for (int i = 0; i < size; ++i) {
                 T value = dis(gen);
-                if (!_head) {
-                    _head = new Node<T>(value);
-                    _head->next = _head;
-                }
-                else {
-                    Node<T>* temp = _head;
-                    while (temp->next != _head) {
-                        temp = temp->next;
-                    }
-                    temp->next = new Node<T>(value);
-                    temp->next->next = _head;
-                }
+                int exponent = i;
+                push_tail(value, exponent);
             }
         }
         else if constexpr (std::is_floating_point_v<T>) {
-            std::uniform_real_distribution<T> dis(-100, 100);
+            std::uniform_real_distribution<T> dis(-100.0, 100.0);
             for (int i = 0; i < size; ++i) {
                 T value = dis(gen);
-                if (!_head) {
-                    _head = new Node<T>(value);
-                    _head->next = _head;
-                }
-                else {
-                    Node<T>* temp = _head;
-                    while (temp->next != _head) {
-                        temp = temp->next;
-                    }
-                    temp->next = new Node<T>(value);
-                    temp->next->next = _head;
-                }
+                int exponent = i;
+                push_tail(value, exponent);
             }
         }
-        else {
-            // Другие типы данных могут быть обработаны здесь
+        else {        
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Unsupported type for LinkedList");
         }
     }
@@ -87,7 +67,7 @@ public:
     ~LinkedList() {
         if (_head) {
             Node<T>* temp = _head->next;
-            _head->next = nullptr; // Разрыв циклической связи
+            _head->next = nullptr;
             while (temp) {
                 Node<T>* toDelete = temp;
                 temp = temp->next;
@@ -106,8 +86,8 @@ public:
     }
 
     // Добавление элемента в конец списка
-    void push_tail(const T& value) {
-        Node<T>* newNode = new Node<T>(value);
+    void push_tail(const T& value, int exponent) {
+        Node<T>* newNode = new Node<T>(value, exponent);
         if (!_head) {
             _head = newNode;
             _head->next = _head;
@@ -130,14 +110,14 @@ public:
 
         Node<T>* otherTemp = otherList._head;
         do {
-            push_tail(otherTemp->data);
+            push_tail(otherTemp->data, otherTemp->exponent);
             otherTemp = otherTemp->next;
         } while (otherTemp != otherList._head);
     }
 
     // Добавление элемента в начало списка
-    void push_head(const T& value) {
-        Node<T>* newNode = new Node<T>(value);
+    void push_head(const T& value, int exponent) {
+        Node<T>* newNode = new Node<T>(value, exponent);
         if (!_head) {
             _head = newNode;
             _head->next = _head;
@@ -155,15 +135,15 @@ public:
 
     // Перегруженный метод добавления другого списка в начало текущего списка
     void push_head(const LinkedList<T>& otherList) {
-        if (otherList._head == nullptr) {
-            throw std::out_of_range("List is empty");
+        if (!otherList._head) {
+            return;
         }
 
         Node<T>* otherCurrent = otherList._head;
         Node<T>* lastAdded = nullptr;
 
         do {
-            Node<T>* newNode = new Node<T>(otherCurrent->data);
+            Node<T>* newNode = new Node<T>(otherCurrent->data, otherCurrent->exponent);
             newNode->next = lastAdded;
             lastAdded = newNode;
 
@@ -172,7 +152,7 @@ public:
 
         Node<T>* current = lastAdded;
         do {
-            push_head(current->data);
+            push_head(current->data, current->exponent);
             current = current->next;
         } while (current != nullptr);
     }
@@ -228,7 +208,7 @@ public:
     }
 
     // Удаление всех элементов Node с информационным полем, равным переданному
-    void delete_node(const T& value) {
+    void delete_node(const T& value, int exponent) {
         if (!_head) {
             std::cout << "List is empty. No elements to delete." << std::endl;
             return;
@@ -240,7 +220,7 @@ public:
         bool found = false;
 
         do {
-            if (temp->data == value) {
+            if (temp->data == value && temp->exponent == exponent) {
                 toDelete = temp;
                 found = true;
                 break;
@@ -250,7 +230,7 @@ public:
         } while (temp != _head);
 
         if (!found) {
-            std::cout << "Element with value " << value << " not found in the list." << std::endl;
+            std::cout << "Element not found in the list." << std::endl;
             return;
         }
 
@@ -263,6 +243,30 @@ public:
         }
     }
 
+    T& operator[](int index) {
+        if (!_head) {
+            throw std::out_of_range("List is empty");
+        }
+
+        Node<T>* temp = _head;
+        for (int i = 0; i < index; ++i) {
+            temp = temp->next;
+        }
+        return temp->data;
+    }
+
+    const T& operator[](int index) const {
+        if (!_head) {
+            throw std::out_of_range("List is empty");
+        }
+
+        Node<T>* temp = _head;
+        for (int i = 0; i < index; ++i) {
+            temp = temp->next;
+        }
+        return temp->data;
+    }
+
     // Метод для вывода списка
     void display() const {
         if (!_head) {
@@ -272,44 +276,46 @@ public:
 
         Node<T>* temp = _head;
         do {
-            std::cout << temp->data << " ";
+            std::cout << temp->data << "x^" << temp->exponent << " ";
             temp = temp->next;
         } while (temp != _head);
         std::cout << std::endl;
     }
+
+    Node<T>* get_head() const {
+        return _head;
+    }
 };
 
+template<typename T>
+T evaluatePolynomial(const LinkedList<T>& polynomial, T x) {
+    if (!polynomial.get_head()) {
+        throw std::logic_error("Polynomial list is empty");
+    }
+
+    T result = 0;
+    Node<T>* temp = polynomial.get_head();
+    do {
+        result += temp->data * pow(x, temp->exponent);
+        temp = temp->next;
+    } while (temp != polynomial.get_head());
+
+    return result;
+}
+
 int main() {
-    // Создание списка типа int и добавление элементов
-    LinkedList<int> intList;
-    intList.push_tail(10);
-    intList.push_tail(20);
-    intList.push_tail(30);
-    intList.push_tail(40);
-    intList.display();
+    // Создание списка с многочленом
+    LinkedList<double> polynomial;
+    polynomial.push_tail(2.0, 2);
+    polynomial.push_tail(3.0, 1);
+    polynomial.push_tail(4.0, 0);
 
-    // Удаление элемента из начала списка
-    intList.pop_head();
-    intList.display();
+    double x = 2.5;
 
-    // Удаление элемента из конца списка
-    intList.pop_tail();
-    intList.display();
+    double result = evaluatePolynomial(polynomial, x);
 
-    // Создание списка типа double и добавление элементов
-    LinkedList<double> doubleList;
-    doubleList.push_tail(3.14);
-    doubleList.push_tail(6.28);
-    doubleList.push_tail(9.42);
-    doubleList.display();
-
-    // Удаление элемента из начала списка
-    doubleList.pop_head();
-    doubleList.display();
-
-    // Удаление всех элементов Node с информационным полем, равным 6.28
-    doubleList.delete_node(6.28);
-    doubleList.display();
+    polynomial.display();
+    std::cout << "Value polynomial with x = " << x << " equals " << result << std::endl;
 
     return 0;
 }
