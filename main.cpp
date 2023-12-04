@@ -208,7 +208,7 @@ public:
     }
 
     // Удаление всех элементов Node с информационным полем, равным переданному
-    void delete_node(const T& value, int exponent) {
+    void delete_node(const T& value) {
         if (!_head) {
             std::cout << "List is empty. No elements to delete." << std::endl;
             return;
@@ -220,7 +220,7 @@ public:
         bool found = false;
 
         do {
-            if (temp->data == value && temp->exponent == exponent) {
+            if (temp->data == value) {
                 toDelete = temp;
                 found = true;
                 break;
@@ -288,12 +288,13 @@ public:
 };
 
 template<typename T>
-T evaluatePolynomial(const LinkedList<T>& polynomial, T x) {
+T evaluatePolynomial(LinkedList<T>& polynomial, T x) {
     if (!polynomial.get_head()) {
         throw std::logic_error("Polynomial list is empty");
     }
 
     T result = 0;
+    polynomial.delete_node(result);
     Node<T>* temp = polynomial.get_head();
     do {
         result += temp->data * pow(x, temp->exponent);
