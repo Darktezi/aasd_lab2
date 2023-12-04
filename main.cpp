@@ -244,25 +244,31 @@ public:
     }
 
     T& operator[](int index) {
-        if (!_head) {
-            throw std::out_of_range("List is empty");
+        if (!_head || index < 0) {
+            throw std::out_of_range("Invalid index or list is empty");
         }
 
         Node<T>* temp = _head;
         for (int i = 0; i < index; ++i) {
             temp = temp->next;
+            if (temp == _head) {
+                throw std::out_of_range("Index out of range");
+            }
         }
         return temp->data;
     }
 
     const T& operator[](int index) const {
-        if (!_head) {
-            throw std::out_of_range("List is empty");
+        if (!_head || index < 0) {
+            throw std::out_of_range("Invalid index or list is empty");
         }
 
         Node<T>* temp = _head;
         for (int i = 0; i < index; ++i) {
             temp = temp->next;
+            if (temp == _head) {
+                throw std::out_of_range("Index out of range");
+            }
         }
         return temp->data;
     }
